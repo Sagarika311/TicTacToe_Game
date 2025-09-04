@@ -2,6 +2,10 @@
 
 A modern, responsive Tic-Tac-Toe game built with HTML, CSS, and JavaScript. Play against a computer AI with adjustable difficulty (Easy, Medium, Hard) or challenge a friend in Player vs. Player mode.
 
+## 📖 Description
+
+This project is a feature-rich implementation of the classic Tic-Tac-Toe game, designed with a modern user interface and engaging interactive elements. It offers two primary game modes: Player vs. Computer and Player vs. Player, catering to both solo play and friendly competition. The Player vs. Computer mode is enhanced with an AI that can be set to three different difficulty levels – Easy, Medium, and Hard – providing a varied challenge for players of all skill levels. Beyond the core gameplay, the project incorporates sound effects, optional background music, and a dynamic dark/light mode toggle for a personalized experience. Celebratory confetti animations and playful animated stickers add a touch of fun, while the responsive design ensures a seamless experience across various devices.
+
 ## ✨ Features
 
 *   **Player vs. Computer Mode:** Test your skills against an AI opponent.
