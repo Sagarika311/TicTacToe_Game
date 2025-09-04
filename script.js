@@ -1,281 +1,494 @@
-const boardEl = document.getElementById('board');
-const turnIndicator = document.getElementById('turnIndicator');
-const subtle = document.getElementById('subtle');
-const playerVsComputerToggle = document.getElementById('playerVsComputerToggle');
-const playerVsPlayerToggle = document.getElementById('playerVsPlayerToggle');
-const resetBtn = document.getElementById('resetBtn');
-const clearScoreBtn = document.getElementById('clearScore');
-const scoreX = document.getElementById('scoreX');
-const scoreO = document.getElementById('scoreO');
-const scoreT = document.getElementById('scoreT');
+// ===============================
+// Tic-Tac-Toe Game 
+// ===============================
 
-const WIN_COMBINATIONS = [
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
-];
+document.addEventListener("DOMContentLoaded", () => {
+  // -------------------------------
+  // Elements
+  // -------------------------------
+  const els = {
+    board: document.getElementById("board"),
+    turnIndicator: document.getElementById("turnIndicator"),
+    subtle: document.getElementById("subtle"),
+    resetBtn: document.getElementById("resetBtn"),
+    clearScoreBtn: document.getElementById("clearScore"),
+    playerVsComputerToggle: document.getElementById("playerVsComputerToggle"),
+    playerVsPlayerToggle: document.getElementById("playerVsPlayerToggle"),
+    scoreX: document.getElementById("scoreX"),
+    scoreO: document.getElementById("scoreO"),
+    scoreT: document.getElementById("scoreT"),
+    // sounds
+    winSound: document.getElementById("winSound"),
+    tieSound: document.getElementById("tieSound"),
+    ambientSound: document.getElementById("ambientSound"),
+    animatedSound: document.getElementById("animatedSound"),
+    musicToggle: document.getElementById("soundToggle"),
+    soundToggle1: document.getElementById("soundToggle1"),
+    soundEffectsToggle: document.getElementById("soundEffectsToggle"),
+    // stickers
+    s1: document.getElementById("sticker1"),
+    s2: document.getElementById("sticker2"),
+  };
 
-let board = Array(9).fill(null);
-let running = true;
-let turn = 'X';
-let playerStartsX = true;
-let scores = { X:0, O:0, T:0 };
+  // -------------------------------
+  // Game State
+  // -------------------------------
+  const State = {
+    board: Array(9).fill(null),
+    running: true,
+    turn: "X",
+    playerStartsX: true,
+    scores: JSON.parse(localStorage.getItem("scores")) || { X: 0, O: 0, T: 0 },
+    WIN_COMBINATIONS: [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ],
+    soundEffectsEnabled: JSON.parse(localStorage.getItem("soundEffectsEnabled")) ?? true,
+    difficulty: localStorage.getItem("difficulty") || "hard"
+  };
 
-function renderBoard(){
-  boardEl.innerHTML = '';
-  for(let i=0;i<9;i++){
-    const cell = document.createElement('button');
-    cell.className = 'cell';
-    cell.dataset.index = i;
-    cell.innerText = board[i]||'';
-    cell.disabled = !running || !!board[i];
-    if(board[i]) cell.classList.add('disabled');
-    cell.addEventListener('click', onCellClick);
-    boardEl.appendChild(cell);
-  }
-}
+  // -------------------------------
+  // Game Logic
+  // -------------------------------
+  const Game = {
+    renderBoard() {
+      els.board.innerHTML = "";
+      State.board.forEach((val, i) => {
+        const cell = document.createElement("button");
+        cell.className = "cell";
+        cell.dataset.index = i;
+        cell.innerText = val || "";
+        cell.disabled = !State.running || !!val;
+        if (val) cell.classList.add("disabled");
+        cell.addEventListener("click", Game.onCellClick);
+        els.board.appendChild(cell);
+      });
+    },
 
-function onCellClick(e){
-  const idx = Number(e.currentTarget.dataset.index);
-  if(!running || board[idx]) return;
+    onCellClick(e) {
+      const idx = Number(e.currentTarget.dataset.index);
+      if (!State.running || State.board[idx]) return;
 
-  if(playerVsComputerToggle.checked && turn !== (playerStartsX ? 'X' : 'O')) return;
+      if (els.playerVsComputerToggle.checked && State.turn !== (State.playerStartsX ? "X" : "O")) return;
 
-  makeMove(idx, turn);
-  update();
+      Game.makeMove(idx, State.turn);
+      Game.update();
 
-  if(running && playerVsComputerToggle.checked && turn === (playerStartsX ? 'O' : 'X')){
-    setTimeout(()=> {
-      const best = findBestMove(board, turn);
-      makeMove(best, turn);
-      update();
-    }, 200);
-  }
-}
+      // Computer move
+      if (State.running && els.playerVsComputerToggle.checked && State.turn === (State.playerStartsX ? "O" : "X")) {
+        setTimeout(() => {
+          const best = AI.findBestMove(State.board, State.turn);
+          Game.makeMove(best, State.turn);
+          Game.update();
+        }, 200);
+      }
+    },
 
-function makeMove(idx, player){
-  board[idx] = player;
-}
+    makeMove(idx, player) {
+      State.board[idx] = player;
+    },
 
-const winSound = document.getElementById("winSound");
-const tieSound = document.getElementById("tieSound");
+    calculateWinner(bd) {
+      for (const line of State.WIN_COMBINATIONS) {
+        const [a, b, c] = line;
+        if (bd[a] && bd[a] === bd[b] && bd[a] === bd[c]) {
+          return { player: bd[a], line };
+        }
+      }
+      return null;
+    },
 
-function update(){
-  renderBoard();
-  const winner = calculateWinner(board);
-  if(winner){
-    running = false;
-    highlightWin(winner.line);
-    turnIndicator.innerText = `Winner: ${winner.player}`;
-    subtle.innerText = `Player ${winner.player} won!`;
-    scores[winner.player]++;
-    refreshScores();
+    highlightWin(line) {
+      const cells = els.board.querySelectorAll(".cell");
+      line.forEach(i => cells[i].classList.add("win"));
+      cells.forEach(c => c.disabled = true);
+    },
 
-      // 🔊 Play win sound
-  winSound.currentTime = 0;
-  winSound.play().catch(() => {});
+    update() {
+      Game.renderBoard();
+      const winner = Game.calculateWinner(State.board);
 
-    return;
-  }
-  if(board.every(Boolean)){
-    running = false;
-    turnIndicator.innerText = 'Tie';
-    subtle.innerText = 'It\'s a draw!';
-    scores.T++;
-    refreshScores();
+      if (winner) {
+        State.running = false;
+        Game.highlightWin(winner.line);
+        els.turnIndicator.innerText = `Winner: ${winner.player}`;
+        els.subtle.innerText = `Player ${winner.player} won!`;
+        State.scores[winner.player]++;
+        UI.refreshScores();
 
-    // 🔊 Play tie sound
-  tieSound.currentTime = 0;
-  tieSound.play().catch(() => {});
-  
-    return;
-  }
+        Sound.playEffect(els.winSound);
+        launchConfetti();
+        return;
+      }
 
-  turn = turn === 'X' ? 'O' : 'X';
-  const playerSymbol = playerStartsX ? 'X' : 'O';
-  turnIndicator.innerText = `Turn: ${turn}`;
+      if (State.board.every(Boolean)) {
+        State.running = false;
+        els.turnIndicator.innerText = "Tie";
+        els.subtle.innerText = "It's a draw!";
+        State.scores.T++;
+        UI.refreshScores();
 
-  if(playerVsComputerToggle.checked){
-    subtle.innerText = (turn === playerSymbol) ? 'Your move' : 'Computer thinking...';
-  } else {
-    subtle.innerText = 'Two-player game';
-  }
-}
+        Sound.playEffect(els.tieSound);
+        return;
+      }
 
-function calculateWinner(bd){
-  for(const line of WIN_COMBINATIONS){
-    const [a,b,c] = line;
-    if(bd[a] && bd[a]===bd[b] && bd[a]===bd[c]) return {player: bd[a], line};
-  }
-  return null;
-}
+      State.turn = State.turn === "X" ? "O" : "X";
+      els.turnIndicator.innerText = `Turn: ${State.turn}`;
+      els.subtle.innerText = els.playerVsComputerToggle.checked
+        ? (State.turn === (State.playerStartsX ? "X" : "O") ? "Your move" : "Computer thinking...")
+        : "Two-player game";
+    },
 
-function highlightWin(line){
-  const cells = boardEl.querySelectorAll('.cell');
-  line.forEach(i=>cells[i].classList.add('win'));
-  cells.forEach(c=>c.disabled = true);
-}
+    reset() {
+      stopConfetti(); // ✅ ensure confetti is cleared on restart
+      State.board = Array(9).fill(null);
+      State.running = true;
 
-function refreshScores(){
-  scoreX.innerText = `X: ${scores.X}`;
-  scoreO.innerText = `O: ${scores.O}`;
-  scoreT.innerText = `Ties: ${scores.T}`;
-}
+      // alternate who starts
+      State.playerStartsX = !State.playerStartsX;
+      State.turn = State.playerStartsX ? "X" : "O";
 
-function resetGame(){
-  board = Array(9).fill(null);
-  running = true;
-  playerStartsX = !playerStartsX;
-  turn = 'X';
-  turnIndicator.innerText = `Turn: ${turn}`;
+      els.turnIndicator.innerText = `Turn: ${State.turn}`;
+      
+      if (els.playerVsComputerToggle.checked) {
+        els.subtle.innerText = "Your move";
+      } else {
+        els.subtle.innerText = `Two-player game — Player ${State.turn} starts`;
+      }
 
-  if(playerVsComputerToggle.checked){
-    subtle.innerText = 'Your move';
-  } else {
-    subtle.innerText = 'Two-player game';
-  }
+      Game.renderBoard();
 
-  renderBoard();
-
-  const compSymbol = playerStartsX ? 'O' : 'X';
-  if(playerVsComputerToggle.checked && compSymbol === 'X'){
-    setTimeout(()=> {
-      const best = findBestMove(board, 'X');
-      makeMove(best, 'X');
-      update();
-    }, 200);
-  }
-}
-
-function findBestMove(bd, player){
-  if(bd.every(v=>v===null)) return 4;
-  function score(b){
-    const winner = calculateWinner(b);
-    if(winner) return winner.player === player ? 10 : -10;
-    if(b.every(Boolean)) return 0;
-    return null;
-  }
-  function minimax(b, isMax){
-    const s = score(b);
-    if(s !== null) return {score: s};
-    const moves = [];
-    for(let i=0;i<9;i++){
-      if(!b[i]){
-        const newB = b.slice(); newB[i] = isMax ? player : (player==='X'?'O':'X');
-        const result = minimax(newB, !isMax);
-        moves.push({index:i, score: result.score});
+      // Only auto-move for computer if needed
+      const compSymbol = State.playerStartsX ? "O" : "X";
+      if (els.playerVsComputerToggle.checked && compSymbol === "X") {
+        setTimeout(() => {
+          const best = AI.findBestMove(State.board, "X");
+          Game.makeMove(best, "X");
+          Game.update();
+        }, 200);
       }
     }
-    return isMax ? moves.reduce((best,m)=> m.score>best.score?m:best) 
-                 : moves.reduce((best,m)=> m.score<best.score?m:best);
+  };
+
+  // -------------------------------
+  // AI Module with difficulty
+  // -------------------------------
+  const AI = {
+    findBestMove(bd, player) {
+      if (State.difficulty === "easy") {
+        const empty = bd.map((v, i) => v ? null : i).filter(v => v !== null);
+        return empty[Math.floor(Math.random() * empty.length)];
+      }
+
+      if (State.difficulty === "medium") {
+        if (Math.random() < 0.5) {
+          const empty = bd.map((v, i) => v ? null : i).filter(v => v !== null);
+          return empty[Math.floor(Math.random() * empty.length)];
+        }
+      }
+
+      // Hard (perfect minimax)
+      if (bd.every(v => v === null)) return 4;
+
+      function score(b) {
+        const winner = Game.calculateWinner(b);
+        if (winner) return winner.player === player ? 10 : -10;
+        if (b.every(Boolean)) return 0;
+        return null;
+      }
+
+      function minimax(b, isMax) {
+        const s = score(b);
+        if (s !== null) return { score: s };
+        const moves = [];
+        for (let i = 0; i < 9; i++) {
+          if (!b[i]) {
+            const newB = b.slice();
+            newB[i] = isMax ? player : (player === "X" ? "O" : "X");
+            const result = minimax(newB, !isMax);
+            moves.push({ index: i, score: result.score });
+          }
+        }
+        return isMax
+          ? moves.reduce((best, m) => m.score > best.score ? m : best)
+          : moves.reduce((best, m) => m.score < best.score ? m : best);
+      }
+
+      return minimax(bd, true).index;
+    }
+  };
+
+  // -------------------------------
+  // UI Helpers
+  // -------------------------------
+  const UI = {
+    refreshScores() {
+      els.scoreX.innerText = `X: ${State.scores.X}`;
+      els.scoreO.innerText = `O: ${State.scores.O}`;
+      els.scoreT.innerText = `Ties: ${State.scores.T}`;
+      localStorage.setItem("scores", JSON.stringify(State.scores));
+    }
+  };
+
+  // -------------------------------
+  // Sound Module
+  // -------------------------------
+  const Sound = {
+    init() {
+      els.ambientSound.muted = true;
+      els.animatedSound.muted = true;
+      els.ambientSound.volume = 0.5;
+      els.animatedSound.volume = 0.5;
+
+      UI.updateMusicButton();
+      UI.updateSoundButton();
+      UI.updateEffectsButton();
+    },
+
+    play(el) {
+      el.currentTime = 0;
+      el.play().catch(() => {});
+    }
+  };
+
+  // -------------------------------
+  // Extend Sound Module
+  // -------------------------------
+  Sound.playEffect = function (el) {
+    if (!State.soundEffectsEnabled) return;
+    el.currentTime = 0;
+    el.play().catch(() => {});
+  };
+
+  // Extend UI for sound buttons
+  UI.updateMusicButton = function () {
+    els.musicToggle.innerText = els.ambientSound.muted ? "🔇 Music Off" : "🔊 Music On";
+    els.musicToggle.classList.toggle("sound-active", !els.ambientSound.muted);
+  };
+
+  UI.updateSoundButton = function () {
+    els.soundToggle1.innerText = els.animatedSound.muted ? "🔇 Sound Off" : "🔊 Sound On";
+    els.soundToggle1.classList.toggle("sound-active", !els.animatedSound.muted);
+  };
+
+  UI.updateEffectsButton = function () {
+    els.soundEffectsToggle.innerText = State.soundEffectsEnabled
+      ? "🔊 Sound Effects On"
+      : "🔇 Sound Effects Off";
+    els.soundEffectsToggle.classList.toggle("sound-active", State.soundEffectsEnabled);
+  };
+
+  // -------------------------------
+  // Stickers Animation
+  // -------------------------------
+  function animateSticker(sticker, direction = 1) {
+    const stickerWidth = sticker.offsetWidth;
+    let pos = parseFloat(sticker.dataset.pos) || 0;
+    let dir = parseFloat(sticker.dataset.dir) || direction;
+
+    function step() {
+      pos += dir * 2;
+      const maxPos = window.innerWidth - stickerWidth - 20;
+      if (pos >= maxPos) { dir = -1; pos = maxPos; }
+      if (pos <= 0) { dir = 1; pos = 0; }
+
+      sticker.style.transform = `translateX(${pos}px)`;
+      sticker.dataset.pos = pos;
+      sticker.dataset.dir = dir;
+      requestAnimationFrame(step);
+    }
+    step();
   }
-  return minimax(bd, true).index;
-}
 
-resetBtn.addEventListener('click', resetGame);
-clearScoreBtn.addEventListener('click', ()=>{ scores = {X:0,O:0,T:0}; refreshScores(); });
-playerVsComputerToggle.addEventListener('change', resetGame);
-playerVsPlayerToggle.addEventListener('change', resetGame);
+  // -------------------------------
+  // Confetti Animation
+  // -------------------------------
+  let confettiRunning = false;
+  let confettiFrame;
 
-resetGame();
-refreshScores();
+  function launchConfetti() {
+    const canvas = document.getElementById("confettiCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-// --- Audio Elements ---
-const ambientSound = document.getElementById("ambientSound");
-const animatedSound = document.getElementById("animatedSound");
+    const confetti = Array.from({ length: 150 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 6 + 4,
+      d: Math.random() * 0.5 + 0.5,
+      color: `hsl(${Math.random() * 360}, 100%, 50%)`
+    }));
 
-// --- Buttons ---
-const musicToggle = document.getElementById("soundToggle");
-const soundToggle1 = document.getElementById("soundToggle1");
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confetti.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+      update();
+      confettiFrame = requestAnimationFrame(draw);
+    }
 
-// --- Initialize ---
-ambientSound.muted = true;
-animatedSound.muted = true;
-ambientSound.volume = 0.5;
-animatedSound.volume = 0.5;
+    function update() {
+      confetti.forEach(p => {
+        p.y += p.d * 5;
+        if (p.y > canvas.height) {
+          p.y = -10;
+          p.x = Math.random() * canvas.width;
+        }
+      });
+    }
 
-// --- Helper Functions ---
-function updateMusicButton() {
-  musicToggle.innerText = ambientSound.muted ? "🔇 Music Off" : "🔊 Music On";
-  musicToggle.classList.toggle("sound-active", !ambientSound.muted);
-}
+    confettiRunning = true;
+    draw();
 
-function updateSoundButton() {
-  soundToggle1.innerText = animatedSound.muted ? "🔇 Sound Off" : "🔊 Sound On";
-  soundToggle1.classList.toggle("sound-active", !animatedSound.muted);
-}
-
-// --- Music Toggle ---
-musicToggle.addEventListener("click", () => {
-  if (ambientSound.muted) {
-    animatedSound.pause();
-    animatedSound.muted = true;
-    updateSoundButton();
-
-    ambientSound.muted = false;
-    ambientSound.play();
-  } else {
-    ambientSound.muted = true;
-    ambientSound.pause();
+    // stop automatically after 3s
+    setTimeout(stopConfetti, 3000);
   }
-  updateMusicButton();
+
+  function stopConfetti() {
+  if (!confettiRunning) return;
+  const canvas = document.getElementById("confettiCanvas");
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  cancelAnimationFrame(confettiFrame);
+  confettiRunning = false;
+  }
+
+  // -------------------------------
+  // Event Listeners
+  // -------------------------------
+  els.clearScoreBtn.addEventListener("click", () => {
+    stopConfetti(); // ✅ stop confetti when clearing scores
+    State.scores = { X: 0, O: 0, T: 0 };
+    UI.refreshScores();
+  });
+
+  els.resetBtn.addEventListener("click", () => {
+    stopConfetti(); // ✅ stop confetti when resetting
+    Game.reset();
+  });
+
+  // -------------------------------
+  // Game Mode Toggles
+  // -------------------------------
+  els.playerVsComputerToggle.addEventListener("change", () => {
+    if (els.playerVsComputerToggle.checked) {
+      // restore difficulty selection
+      diffButtons.forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.diff === State.difficulty);
+      });
+    }
+    Game.reset();
+  });
+
+  els.playerVsPlayerToggle.addEventListener("change", () => {
+    if (els.playerVsPlayerToggle.checked) {
+      // clear all difficulty highlights
+      diffButtons.forEach(btn => btn.classList.remove("active"));
+    }
+    Game.reset();
+  });
+
+  els.musicToggle.addEventListener("click", () => {
+    if (els.ambientSound.muted) {
+      els.animatedSound.pause();
+      els.animatedSound.muted = true;
+      UI.updateSoundButton();
+      els.ambientSound.muted = false;
+      els.ambientSound.play();
+    } else {
+      els.ambientSound.muted = true;
+      els.ambientSound.pause();
+    }
+    UI.updateMusicButton();
+  });
+
+  els.soundToggle1.addEventListener("click", () => {
+    if (els.animatedSound.muted) {
+      els.ambientSound.pause();
+      els.ambientSound.muted = true;
+      UI.updateMusicButton();
+      els.animatedSound.muted = false;
+      els.animatedSound.play();
+    } else {
+      els.animatedSound.muted = true;
+      els.animatedSound.pause();
+    }
+    UI.updateSoundButton();
+  });
+
+  document.addEventListener("click", () => {
+    if (!els.ambientSound.muted && els.ambientSound.paused) els.ambientSound.play().catch(() => {});
+    if (!els.animatedSound.muted && els.animatedSound.paused) els.animatedSound.play().catch(() => {});
+  }, { once: true });
+
+  els.soundEffectsToggle.addEventListener("click", () => {
+    State.soundEffectsEnabled = !State.soundEffectsEnabled;
+    localStorage.setItem("soundEffectsEnabled", JSON.stringify(State.soundEffectsEnabled));
+    UI.updateEffectsButton();
+  });
+
+  // -------------------------------
+  // Difficulty Toggle
+  // -------------------------------
+  const diffButtons = document.querySelectorAll(".diff-btn");
+
+  // set initial state
+  diffButtons.forEach(btn => {
+    if (btn.dataset.diff === State.difficulty) {
+      btn.classList.add("active");
+    }
+  });
+
+  // click handler
+  diffButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      State.difficulty = btn.dataset.diff;
+      localStorage.setItem("difficulty", State.difficulty);
+
+      // update UI
+      diffButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      Game.reset();
+    });
+  });
+
+  // -------------------------------
+  // Initialize Game
+  // -------------------------------
+  Game.reset();
+  UI.refreshScores();
+  Sound.init();
+  animateSticker(els.s1, 1);
+  animateSticker(els.s2, -1);
 });
 
-// --- Animated Sound Toggle ---
-soundToggle1.addEventListener("click", () => {
-  if (animatedSound.muted) {
-    ambientSound.pause();
-    ambientSound.muted = true;
-    updateMusicButton();
 
-    animatedSound.muted = false;
-    animatedSound.play();
-  } else {
-    animatedSound.muted = true;
-    animatedSound.pause();
-  }
-  updateSoundButton();
-});
+// -------------------------------
+// Theme Toggle (Dark/Light)
+// -------------------------------
+const themeToggle = document.getElementById("themeToggle");
 
-// --- First user interaction for autoplay compliance ---
-document.addEventListener(
-  "click",
-  () => {
-    if (!ambientSound.muted && ambientSound.paused) ambientSound.play().catch(() => {});
-    if (!animatedSound.muted && animatedSound.paused) animatedSound.play().catch(() => {});
-  },
-  { once: true }
-);
-
-updateMusicButton();
-updateSoundButton();
-
-// --- Stickers ---
-// Stickers move left-right within viewport width
-const s1 = document.getElementById("sticker1");
-const s2 = document.getElementById("sticker2");
-
-function animateSticker(sticker, direction = 1) {
-  const stickerWidth = sticker.offsetWidth;
-  let pos = parseFloat(sticker.dataset.pos) || 0;
-  let dir = parseFloat(sticker.dataset.dir) || direction;
-
-  function step() {
-    pos += dir * 2; // speed
-    const maxPos = window.innerWidth - stickerWidth - 20; // 20px padding from edge
-
-    if (pos >= maxPos) { dir = -1; pos = maxPos; }
-    if (pos <= 0) { dir = 1; pos = 0; }
-
-    sticker.style.transform = `translateX(${pos}px)`;
-    sticker.dataset.pos = pos;
-    sticker.dataset.dir = dir;
-
-    requestAnimationFrame(step);
-  }
-  step();
+// Load saved theme
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark-mode");
+  themeToggle.innerText = "☀️ Light Mode";
+} else {
+  themeToggle.innerText = "🌙 Dark Mode";
 }
 
-// Start animations
-animateSticker(s1, 1); // Sticker1 moves right first
-animateSticker(s2, -1); // Sticker2 moves left first
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  const isDark = document.body.classList.contains("dark-mode");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+  themeToggle.innerText = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+});

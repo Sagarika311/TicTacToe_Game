@@ -1,50 +1,77 @@
 :root {
-  --bg-light: #a164a9; /* light gradient start */
-  --bg-dark: #e1d9ec;  /* light gradient end */
+  /* 🎨 Color Variables (default light) */
+  --bg1: #e0e7ff;
+  --bg2: #c7d2fe;
+  --bg3: #dbeafe;
+  --bg4: #f0f9ff;
+
   --panel: #1e293b;
   --tile: #334155;
   --tile-hover: #475569;
   --accent: linear-gradient(135deg, #7c3aed, #9333ea);
   --accent-hover: linear-gradient(135deg, #8b5cf6, #a855f7);
   --win: #22c55e;
-  --muted: #94a3b8;
+
+  --muted: #64748b;
+  --muted-light: #94a3b8;
+  
+  --text: #1a202c;
+  --text-light: #e2e8f0;
+  --footer-text: #000000;
+  --footer-accent: #bc0d16;
+
   font-family: 'Poppins', sans-serif;
-  color-scheme: light; 
-  color: #1a202c;
+}
+
+/* 🌙 Dark Theme (when .dark-mode is added to body) */
+body.dark-mode {
+  --bg1: #0f172a;
+  --bg2: #1e293b;
+  --bg3: #1e293b;
+  --bg4: #334155;
+
+  --panel: #0f172a;
+  --tile: #1e293b;
+  --tile-hover: #334155;
+  --text: #f8fafc;
+  --text-light: #f1f5f9;
+  --muted: #94a3b8;
+  --footer-text: #f1f5f9;
+  --footer-accent: #facc15;
 }
 
 html, body {
   height: 100%;
+  margin: 0;
 }
 
-/* Background gradient and base styles */
+/* ✅ Background + Centering restored */
 body {
-  margin: 0;
-  height: 100vh;
-  background: linear-gradient(-45deg, #e0e7ff, #c7d2fe, #dbeafe, #f0f9ff);
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100vh;
+  background: linear-gradient(-45deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4));
+  overflow: hidden;
   position: relative;
-  color: #1a202c;
+  color: var(--text);
 }
+
 
 /* Panel styling */
 .panel {
   position: relative;
-  z-index: 5; /* Always above background */
+  z-index: 5;
   width: min(760px, 96vw);
   background: var(--panel);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-  color: #e2e8f0;
-  transform: translateY(-30px); /* shift upward */
+  color: var(--text-light);
+  transform: translateY(-30px);
 }
 
-/* Header, controls, and scores */
 header {
   display: flex;
   align-items: center;
@@ -57,14 +84,15 @@ h1 {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 1px;
-  color: #e2e8f0;
+  color: var(--text-light);
 }
 
+/* Controls */
 .controls {
   display: flex;
   gap: 12px;
   align-items: center;
-  color: #e2e8f0;
+  color: var(--text-light);
 }
 
 .score {
@@ -77,10 +105,10 @@ h1 {
   padding: 8px 12px;
   border-radius: 10px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-light);
 }
 
-/* Board layout */
+/* Board */
 .board-wrap {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -113,7 +141,7 @@ h1 {
   cursor: pointer;
   transition: all 0.25s ease;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
-  color: #e2e8f0;
+  color: var(--text-light);
 }
 
 .cell:hover {
@@ -133,18 +161,18 @@ h1 {
   box-shadow: 0 8px 20px rgba(34, 197, 94, 0.6);
 }
 
-/* Aside and buttons */
+/* Aside */
 aside {
   position: relative;
   background: rgba(255, 255, 255, 0.05);
   padding: 16px;
   border-radius: 14px;
-  color: #e2e8f0;
+  color: var(--text-light);
 }
 
 .status {
   margin-bottom: 12px;
-  color: #e2e8f0;
+  color: var(--text-light);
 }
 
 .buttons {
@@ -173,7 +201,7 @@ button:hover {
 button.secondary {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #cbd5e1;
+  color: var(--text-light);
 }
 
 .subtle {
@@ -184,7 +212,7 @@ button.secondary {
 .line-info {
   font-size: 13px;
   margin-top: 8px;
-  color: #a1a1aa;
+  color: var(--muted-light);
 }
 
 /* Stickers */
@@ -217,16 +245,11 @@ button.secondary {
   100% { transform: translateX(calc(-100vw + 100px)); }
 }
 
-#soundToggle {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-}
-
-#soundToggle1 {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
+#soundToggle,
+#soundToggle1,
+#soundEffectsToggle {
+  position: relative;
+  margin-top: 8px;
 }
 
 .sound-active {
@@ -235,22 +258,95 @@ button.secondary {
   transition: all 0.3s ease;
 }
 
+/* Footer */
 .footer {
-  position: fixed; /* sticks to the bottom of the viewport */
+  position: fixed;
   bottom: 10px;
   left: 0;
   width: 100%;
   text-align: center;
-  font-family: 'Times new roman', sans-serif; /* change to Arial */
-  font-weight: bold;                 /* bold text */
+  font-family: 'Times new roman', sans-serif;
+  font-weight: bold;
   font-size: 18px;
-  color: #000000;                     /* black text */
+  color: var(--footer-text);
   pointer-events: none;
-  z-index: 10;                        /* above stickers/background shapes */
+  z-index: 10;
 }
 
 .footer .author-name {
   font-weight: 700;
-  color: #bc0d16; /* accent color */
-  font-style: bold;
+  color: var(--footer-accent);
+}
+
+/* 📱 Mobile Responsive Tweaks */
+@media (max-width: 400px) {
+  h1 {
+    font-size: 20px;
+  }
+  .cell {
+    font-size: 42px;
+  }
+  .panel {
+    padding: 16px;
+  }
+  .buttons button {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+
+#confettiCanvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/*Difficulty Toggle*/
+
+.difficulty-toggle {
+  display: block;
+  margin-top: 12px;
+  margin-left: 2px;
+}
+
+.difficulty-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-light);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.difficulty-buttons {
+  display: flex;
+  gap: 6px; /* space between buttons */
+}
+
+.diff-btn {
+  flex: 1; /* all buttons equal width */
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--text-light);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  text-align: center;
+  padding: 10px 14px;   /* ✅ same as restart button */
+  border-radius: 10px;
+}
+
+.diff-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.02);
+}
+
+.diff-btn.active {
+  background: var(--accent);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
 }

@@ -1,11 +1,19 @@
 <!doctype html>
 <html lang="en">
 <head>
+  
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="A modern Tic-Tac-Toe game with Player vs Computer and Player vs Player modes.">
+  <meta name="author" content="Sagarika">
+  <meta name="theme-color" content="#7c3aed">
+
   <title>Tic-Tac-Toe</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
+<canvas id="confettiCanvas"></canvas>
+
 <body>
   <main class="panel">
     <header>
@@ -23,7 +31,6 @@
     <div id="scoreX">X: 0</div>
     <div id="scoreO">O: 0</div>
     <div id="scoreT">Ties: 0</div>
-    
   </div>
 </div>
     </header>
@@ -50,8 +57,31 @@
         </div>
         <div class="line-info subtle">Click a cell to place your mark.</div><br>
         <div>
-        <button id="soundToggle" class="secondary" aria-pressed="true" aria-label="Mute ambient sound">🔊 Music On</button>
-        <button id="soundToggle1" class="secondary" aria-pressed="true" aria-label="Mute animated sound">🔊 Sound On</button>
+          </div>
+            <!-- 🌗 Dark/Light toggle -->
+            <button id="themeToggle" class="secondary" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
+          </div>
+          <br>
+          <button id="soundEffectsToggle" class="secondary" aria-pressed="true" aria-label="Toggle sound effects">
+            🔊 Sound Effects On
+          </button>
+          <br>
+          <button id="soundToggle1" class="secondary" aria-pressed="true" aria-label="Mute animated sound">
+            🔊 Sound On
+          </button>
+          <br>
+          <button id="soundToggle" class="secondary" aria-pressed="true" aria-label="Mute ambient sound">
+            🔊 Music On
+          </button>
+        </div>
+        <br>
+        <div class="difficulty-toggle">
+          <span class="difficulty-label">Choose AI Difficulty:</span>
+          <div class="difficulty-buttons">
+            <button id="diffEasy" class="diff-btn" data-diff="easy">Easy</button>
+            <button id="diffMedium" class="diff-btn" data-diff="medium">Medium</button>
+            <button id="diffHard" class="diff-btn" data-diff="hard">Hard</button>
+          </div>
         </div>
       </aside>
     </section>
@@ -59,7 +89,7 @@
 
   <footer class="footer">
   Made by <span class="author-name">Sagarika</span>
-</footer>
+  </footer>
     
 <img src="1.png" alt="Sticker 1" class="sticker" id="sticker1">
 <img src="2.png" alt="Sticker 2" class="sticker" id="sticker2">
