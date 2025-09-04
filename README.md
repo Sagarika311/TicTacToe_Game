@@ -23,6 +23,14 @@ A modern, responsive Tic-Tac-Toe game built with HTML, CSS, and JavaScript. Play
 
 ## 🎮 How to Play
 
+You can play the game by either cloning the repository or visiting the live Netlify page.
+
+### Play Online
+
+*   Visit the live game here: ([https://your-netlify-app-url.netlify.app](https://tic-tac-toe-app-sagarika.netlify.app/)) 
+
+### Play Locally
+
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/your-username/tic-tac-toe.git
@@ -85,3 +93,5 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 🧑‍💻 Author
 
 **Sagarika**
+
+---
