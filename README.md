@@ -27,7 +27,7 @@ You can play the game by either cloning the repository or visiting the live Netl
 
 ### Play Online
 
-*   Visit the live game here: ([https://your-netlify-app-url.netlify.app](https://tic-tac-toe-app-sagarika.netlify.app/)) 
+*   Visit the live game here: ([[https://your-netlify-app-url.netlify.app](https://tic-tac-toe-app-sagarika.netlify.app/)]
 
 ### Play Locally
 
