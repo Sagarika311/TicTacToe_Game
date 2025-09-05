@@ -45,7 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
       [0, 4, 8], [2, 4, 6]
     ],
     soundEffectsEnabled: JSON.parse(localStorage.getItem("soundEffectsEnabled")) ?? true,
-    difficulty: localStorage.getItem("difficulty") || "hard"
+    difficulty: localStorage.getItem("difficulty") || "hard",
+    initialized: false // ✅ added
   };
 
   // -------------------------------
@@ -145,8 +146,13 @@ document.addEventListener("DOMContentLoaded", () => {
       State.board = Array(9).fill(null);
       State.running = true;
 
-      // alternate who starts
-      State.playerStartsX = !State.playerStartsX;
+      // ✅ alternate only after first game
+      if (State.initialized) {
+        State.playerStartsX = !State.playerStartsX;
+      } else {
+        State.playerStartsX = true; // first game always X
+        State.initialized = true;
+      }
       State.turn = State.playerStartsX ? "X" : "O";
 
       els.turnIndicator.innerText = `Turn: ${State.turn}`;
@@ -159,15 +165,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       Game.renderBoard();
 
-      // Only auto-move for computer if needed
-      const compSymbol = State.playerStartsX ? "O" : "X";
-      if (els.playerVsComputerToggle.checked && compSymbol === "X") {
-        setTimeout(() => {
-          const best = AI.findBestMove(State.board, "X");
-          Game.makeMove(best, "X");
-          Game.update();
-        }, 200);
-      }
+    // Auto-move if computer starts
+    const computerStarts = els.playerVsComputerToggle.checked && State.turn !== (State.playerStartsX ? "X" : "O");
+    if (computerStarts) {
+    setTimeout(() => {
+        const best = AI.findBestMove(State.board, State.turn);
+        Game.makeMove(best, State.turn);
+        Game.update();
+    }, 200);
+    }
     }
   };
 
@@ -280,34 +286,14 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // -------------------------------
-  // Stickers Animation
-  // -------------------------------
-  function animateSticker(sticker, direction = 1) {
-    const stickerWidth = sticker.offsetWidth;
-    let pos = parseFloat(sticker.dataset.pos) || 0;
-    let dir = parseFloat(sticker.dataset.dir) || direction;
-
-    function step() {
-      pos += dir * 2;
-      const maxPos = window.innerWidth - stickerWidth - 20;
-      if (pos >= maxPos) { dir = -1; pos = maxPos; }
-      if (pos <= 0) { dir = 1; pos = 0; }
-
-      sticker.style.transform = `translateX(${pos}px)`;
-      sticker.dataset.pos = pos;
-      sticker.dataset.dir = dir;
-      requestAnimationFrame(step);
-    }
-    step();
-  }
-
-  // -------------------------------
   // Confetti Animation
   // -------------------------------
   let confettiRunning = false;
   let confettiFrame;
 
   function launchConfetti() {
+    const count = window.innerWidth < 500 ? 50 : 150; // fewer particles on mobile
+    if (confettiRunning) return; // ✅ prevent duplicate launches
     const canvas = document.getElementById("confettiCanvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -352,51 +338,56 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function stopConfetti() {
-  if (!confettiRunning) return;
-  const canvas = document.getElementById("confettiCanvas");
-  if (canvas) {
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-  cancelAnimationFrame(confettiFrame);
-  confettiRunning = false;
+    if (!confettiRunning) return;
+    const canvas = document.getElementById("confettiCanvas");
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    cancelAnimationFrame(confettiFrame);
+    confettiRunning = false;
   }
 
   // -------------------------------
   // Event Listeners
   // -------------------------------
   els.clearScoreBtn.addEventListener("click", () => {
-    stopConfetti(); // ✅ stop confetti when clearing scores
+    stopConfetti();
     State.scores = { X: 0, O: 0, T: 0 };
     UI.refreshScores();
   });
 
   els.resetBtn.addEventListener("click", () => {
-    stopConfetti(); // ✅ stop confetti when resetting
+    stopConfetti();
     Game.reset();
   });
 
-  // -------------------------------
   // Game Mode Toggles
-  // -------------------------------
   els.playerVsComputerToggle.addEventListener("change", () => {
     if (els.playerVsComputerToggle.checked) {
-      // restore difficulty selection
-      diffButtons.forEach(btn => {
+        diffButtons.forEach(btn => {
         btn.classList.toggle("active", btn.dataset.diff === State.difficulty);
-      });
+        });
     }
+    // ✅ clear scores when switching modes
+    State.scores = { X: 0, O: 0, T: 0 };
+    UI.refreshScores();
+
     Game.reset();
-  });
+    });
 
   els.playerVsPlayerToggle.addEventListener("change", () => {
     if (els.playerVsPlayerToggle.checked) {
-      // clear all difficulty highlights
-      diffButtons.forEach(btn => btn.classList.remove("active"));
+        diffButtons.forEach(btn => btn.classList.remove("active"));
     }
-    Game.reset();
-  });
+    // ✅ clear scores when switching modes
+    State.scores = { X: 0, O: 0, T: 0 };
+    UI.refreshScores();
 
+    Game.reset();
+    });
+
+  // Sound 
   els.musicToggle.addEventListener("click", () => {
     if (els.ambientSound.muted) {
       els.animatedSound.pause();
@@ -441,23 +432,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------
   const diffButtons = document.querySelectorAll(".diff-btn");
 
-  // set initial state
   diffButtons.forEach(btn => {
     if (btn.dataset.diff === State.difficulty) {
       btn.classList.add("active");
     }
   });
 
-  // click handler
   diffButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       State.difficulty = btn.dataset.diff;
       localStorage.setItem("difficulty", State.difficulty);
-
-      // update UI
       diffButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-
       Game.reset();
     });
   });
@@ -472,13 +458,11 @@ document.addEventListener("DOMContentLoaded", () => {
   animateSticker(els.s2, -1);
 });
 
-
 // -------------------------------
 // Theme Toggle (Dark/Light)
 // -------------------------------
 const themeToggle = document.getElementById("themeToggle");
 
-// Load saved theme
 if (localStorage.getItem("theme") === "dark") {
   document.body.classList.add("dark-mode");
   themeToggle.innerText = "☀️ Light Mode";
@@ -492,3 +476,10 @@ themeToggle.addEventListener("click", () => {
   localStorage.setItem("theme", isDark ? "dark" : "light");
   themeToggle.innerText = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
 });
+
+/*
+// Mobile Tweaks
+if (window.innerWidth < 400) {
+  document.getElementById("sticker1").style.display = "none";
+  document.getElementById("sticker2").style.display = "none";
+}*/
