@@ -1,45 +1,43 @@
 <!doctype html>
 <html lang="en">
 <head>
-  
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="A modern Tic-Tac-Toe game with Player vs Computer and Player vs Player modes.">
   <meta name="author" content="Sagarika">
   <meta name="theme-color" content="#7c3aed">
-
   <title>Tic-Tac-Toe</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
-<canvas id="confettiCanvas"></canvas>
-
 <body>
+  <!-- ✅ moved canvas inside body -->
+  <canvas id="confettiCanvas"></canvas>
+
   <main class="panel">
     <header>
       <h1>Tic-Tac-Toe</h1>
       <div class="controls">
-  <label class="switch">
-    <input id="playerVsComputerToggle" type="radio" name="gameMode" value="computer" checked />
-    <span>Player vs Computer</span>
-  </label>
-  <label class="switch">
-    <input id="playerVsPlayerToggle" type="radio" name="gameMode" value="player" />
-    <span>Player 1 vs Player 2</span>
-  </label>
-  <div class="score">
-    <div id="scoreX">X: 0</div>
-    <div id="scoreO">O: 0</div>
-    <div id="scoreT">Ties: 0</div>
-  </div>
-</div>
+        <label class="switch">
+          <input id="playerVsComputerToggle" type="radio" name="gameMode" value="computer" checked />
+          <span>Player vs Computer</span>
+        </label>
+        <label class="switch">
+          <input id="playerVsPlayerToggle" type="radio" name="gameMode" value="player" />
+          <span>Player 1 vs Player 2</span>
+        </label>
+        <div class="score">
+          <div id="scoreX">X: 0</div>
+          <div id="scoreO">O: 0</div>
+          <div id="scoreT">Ties: 0</div>
+        </div>
+      </div>
     </header>
 
     <audio autoplay loop muted id="ambientSound" src="Pirouette.mp3"></audio>
     <audio autoplay loop muted id="animatedSound" src="Babyshark.mp3"></audio>
     <audio id="winSound" src="win.mp3"></audio>
     <audio id="tieSound" src="tie.mp3"></audio>
-
 
     <section class="board-wrap">
       <div>
@@ -56,25 +54,22 @@
           <button id="clearScore" class="secondary">Clear Scores</button>
         </div>
         <div class="line-info subtle">Click a cell to place your mark.</div><br>
-        <div>
-          </div>
-            <!-- 🌗 Dark/Light toggle -->
-            <button id="themeToggle" class="secondary" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
-          </div>
-          <br>
-          <button id="soundEffectsToggle" class="secondary" aria-pressed="true" aria-label="Toggle sound effects">
-            🔊 Sound Effects On
-          </button>
-          <br>
-          <button id="soundToggle1" class="secondary" aria-pressed="true" aria-label="Mute animated sound">
-            🔊 Sound On
-          </button>
-          <br>
-          <button id="soundToggle" class="secondary" aria-pressed="true" aria-label="Mute ambient sound">
-            🔊 Music On
-          </button>
-        </div>
-        <br>
+
+        <!-- 🌗 Dark/Light toggle -->
+        <button id="themeToggle" class="secondary" aria-label="Toggle dark/light mode">🌙 Dark Mode</button><br>
+
+        <button id="soundEffectsToggle" class="secondary" aria-pressed="true" aria-label="Toggle sound effects">
+          🔊 Sound Effects On
+        </button><br>
+
+        <button id="soundToggle1" class="secondary" aria-pressed="true" aria-label="Mute animated sound">
+          🔊 Sound On
+        </button><br>
+
+        <button id="soundToggle" class="secondary" aria-pressed="true" aria-label="Mute ambient sound">
+          🔊 Music On
+        </button><br>
+
         <div class="difficulty-toggle">
           <span class="difficulty-label">Choose AI Difficulty:</span>
           <div class="difficulty-buttons">
@@ -88,11 +83,11 @@
   </main>
 
   <footer class="footer">
-  Made by <span class="author-name">Sagarika</span>
+    Made by <span class="author-name">Sagarika</span>
   </footer>
     
-<img src="1.png" alt="Sticker 1" class="sticker" id="sticker1">
-<img src="2.png" alt="Sticker 2" class="sticker" id="sticker2">
+  <img src="1.png" alt="Sticker 1" class="sticker" id="sticker1">
+  <img src="2.png" alt="Sticker 2" class="sticker" id="sticker2">
 
   <script src="script.js"></script>
 </body>
